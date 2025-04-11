@@ -1,0 +1,58 @@
+{
+  "short_name": "MemoryBox",
+  "name": "MemoryBox - Memory Care App",
+  "icons": [
+    {
+      "src": "/static/images/icons/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/splash?standalone=true&source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#4E7ADC",
+  "background_color": "#f8f9fa",
+  "description": "A memory care application for patients and caretakers",
+  "categories": ["health", "medical", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Memory",
+      "short_name": "Memory",
+      "description": "Access memory album",
+      "url": "/reminiscence_therapy"
+    },
+    {
+      "name": "Medication",
+      "short_name": "Meds",
+      "description": "Manage your medications",
+      "url": "/medications"
+    },
+    {
+      "name": "AI Assistant",
+      "short_name": "AI",
+      "description": "Talk to the AI assistant",
+      "url": "/ai_assistant"
+    },
+    {
+      "name": "To-Do",
+      "short_name": "To-Do",
+      "description": "View your tasks",
+      "url": "/tasks"
+    }
+  ]
+}
