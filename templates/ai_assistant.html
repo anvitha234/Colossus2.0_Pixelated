@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+    }
+    
+    .chat-message {
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+    
+    .user-message {
+        background-color: var(--primary-color);
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .assistant-message {
+        background-color: #e9ecef;
+        color: #212529;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .typing-indicator {
+        background-color: #e9ecef;
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    #voice-button {
+        background-color: #6c757d;
+        transition: all 0.3s ease;
+    }
+    
+    #voice-button:hover {
+        background-color: #5a6268;
+    }
+    
+    #voice-button.listening {
+        background-color: var(--danger-color);
+        animation: pulse 1.5s infinite;
+    }
+    
+    #voice-feedback {
+        height: 24px;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="fw-bold">
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+                <i class="fas fa-arrow-left me-2"></i>
+            </a>
+            AI Memory Assistant
+        </h1>
+        <p class="text-muted">Ask me anything about your personal information</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Memory Assistant</h5>
+    </div>
+    <div class="card-body">
+        <div class="text-center mb-4">
+            <i class="fas fa-robot fa-4x text-primary"></i>
+            <h4 class="mt-3">Your Personal Memory Assistant</h4>
+            <p>I can help answer questions about your personal information and memories.</p>
+        </div>
+        
+        <div id="chat-container" class="chat-container">
+            <div id="chat-messages">
+                <div class="chat-message assistant-message">
+                    Hello {{ user.name }}! I'm your AI memory assistant. How can I help you today?
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input mt-3">
+            <div class="input-group">
+                <input type="text" id="user-input" class="form-control form-control-lg" placeholder="Type your question...">
+                <button class="btn btn-primary" id="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                <button class="btn btn-secondary" id="voice-button" title="Speak your question">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+            <div id="voice-feedback" class="text-center mt-2 d-none">
+                <small class="text-primary"><i class="fas fa-microphone-alt"></i> Listening...</small>
+            </div>
+        </div>
+        
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+            <p class="text-muted mb-0">Sample questions:</p>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="speech-toggle" checked>
+                <label class="form-check-label" for="speech-toggle">Read responses aloud</label>
+            </div>
+        </div>
+        
+        <div class="d-flex flex-wrap mt-2">
+            <button class="btn btn-outline-primary btn-sm me-2 mb-2 quick-question">What's my name?</button>
+            <button class="btn btn-outline-primary btn-sm me-2 mb-2 quick-question">How old am I?</button>
+            <button class="btn btn-outline-primary btn-sm me-2 mb-2 quick-question">Where do I live?</button>
+            <button class="btn btn-outline-primary btn-sm me-2 mb-2 quick-question">What are my hobbies?</button>
+            <button class="btn btn-outline-primary btn-sm me-2 mb-2 quick-question">Tell me about myself</button>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const voiceButton = document.getElementById('voice-button');
+        const voiceFeedback = document.getElementById('voice-feedback');
+        const chatContainer = document.getElementById('chat-container');
+        const speechToggle = document.getElementById('speech-toggle');
+        
+        // Text-to-speech setup
+        const synth = window.speechSynthesis;
+        let currentUtterance = null;
+        
+        // Stop any ongoing speech when user starts talking
+        function stopSpeaking() {
+            if (synth.speaking) {
+                synth.cancel();
+                currentUtterance = null;
+            }
+        }
+        
+        // Read text aloud
+        function speakText(text) {
+            if (!speechToggle.checked) return;
+            
+            stopSpeaking();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // Get available voices and try to find a good one
+            const voices = synth.getVoices();
+            if (voices.length > 0) {
+                // Try to find a natural sounding voice
+                const preferredVoices = voices.filter(voice => 
+                    voice.name.includes('Female') || 
+                    voice.name.includes('Google') || 
+                    voice.name.includes('Natural')
+                );
+                
+                if (preferredVoices.length > 0) {
+                    utterance.voice = preferredVoices[0];
+                }
+            }
+            
+            currentUtterance = utterance;
+            synth.speak(utterance);
+        }
+        
+        // Speech recognition setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            
+            recognition.onstart = function() {
+                voiceFeedback.textContent = "Listening...";
+                voiceFeedback.classList.remove('d-none');
+                voiceButton.classList.add('listening');
+            };
+            
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                userInput.value = speechResult;
+                voiceFeedback.textContent = "Processing...";
+                
+                // Auto-send the voice input
+                setTimeout(() => {
+                    sendMessage();
+                    voiceFeedback.classList.add('d-none');
+                    voiceButton.classList.remove('listening');
+                }, 500);
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+                voiceFeedback.textContent = "Error: " + event.error;
+                setTimeout(() => {
+                    voiceFeedback.classList.add('d-none');
+                    voiceButton.classList.remove('listening');
+                }, 2000);
+                
+                if (event.error === 'no-speech') {
+                    addMessage('I didn\'t hear anything. Please try again.', 'assistant');
+                } else {
+                    addMessage('Sorry, I couldn\'t understand that. Please try again or type your question.', 'assistant');
+                }
+            };
+            
+            recognition.onend = function() {
+                voiceButton.classList.remove('listening');
+                voiceButton.disabled = false;
+            };
+        }
+        
+        // Voice button click handler
+        voiceButton.addEventListener('click', function() {
+            // Stop any ongoing speech when user starts talking
+            stopSpeaking();
+            
+            if (SpeechRecognition) {
+                try {
+                    voiceButton.disabled = true;
+                    recognition.start();
+                } catch (err) {
+                    console.error('Speech recognition error on start:', err);
+                    voiceButton.disabled = false;
+                    addMessage('There was an error with the speech recognition. Please try again.', 'assistant');
+                }
+            } else {
+                addMessage('Sorry, your browser doesn\'t support speech recognition. Try using Chrome, Edge, or Safari.', 'assistant');
+            }
+        });
+        
+        // Quick question buttons
+        document.querySelectorAll('.quick-question').forEach(button => {
+            button.addEventListener('click', function() {
+                const questionText = this.textContent;
+                userInput.value = questionText;
+                sendMessage();
+            });
+        });
+        
+        // Send button click handler
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Enter key handler
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage === '') return;
+            
+            // Stop any ongoing speech
+            stopSpeaking();
+            
+            // Add user message to chat
+            addMessage(userMessage, 'user');
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'chat-message assistant-message typing-indicator';
+            typingIndicator.textContent = 'Thinking...';
+            chatMessages.appendChild(typingIndicator);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Send request to server
+            fetch("{{ url_for('ai_response') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ prompt: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove typing indicator
+                chatMessages.removeChild(typingIndicator);
+                
+                // Add AI response
+                addMessage(data.response, 'assistant');
+                
+                // Speak the response
+                speakText(data.response);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Remove typing indicator
+                chatMessages.removeChild(typingIndicator);
+                
+                // Add error message
+                const errorMessage = 'Sorry, I encountered an error. Please try again.';
+                addMessage(errorMessage, 'assistant');
+                
+                // Speak the error message
+                speakText(errorMessage);
+            });
+        }
+        
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}-message`;
+            messageDiv.textContent = text;
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Initialize voices when they are loaded
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = function() {
+                // Voices are loaded, ready for use
+            };
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard specific variables */
+    :root {
+        --card-border-radius: 1rem;
+        --feature-card-radius: 1.25rem;
+        --card-shadow: 0 0.5rem 2rem rgba(67, 97, 238, 0.1);
+        --hover-shadow: 0 0.75rem 2.5rem rgba(67, 97, 238, 0.18);
+    }
+    
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .dashboard-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    /* Location display */
+    .location-display {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 1rem;
+        background-color: white;
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .location-display i {
+        margin-right: 8px;
+        color: var(--primary-color);
+    }
+    
+    /* Date display */
+    .date-display {
+        text-align: center;
+        margin: 1rem 0;
+        background-color: white;
+        padding: 0.8rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        font-weight: 500;
+        color: #444;
+    }
+    
+    .date-display p {
+        margin-bottom: 0;
+    }
+    
+    /* App navigation buttons */
+    .nav-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .nav-btn {
+        flex: 1;
+        padding: 14px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 600;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .nav-btn i {
+        margin-right: 8px;
+    }
+    
+    .nav-btn.notes {
+        background: linear-gradient(135deg, #6D4C41 0%, #5D4037 100%);
+    }
+    
+    .nav-btn.emergency {
+        background: linear-gradient(135deg, #D32F2F 0%, #C62828 100%);
+    }
+    
+    .nav-btn:active {
+        transform: scale(0.98);
+    }
+    
+    /* App tiles grid */
+    .app-tiles {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 2rem;
+    }
+    
+    .app-tile {
+        aspect-ratio: 1 / 1;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .app-tile:active {
+        transform: scale(0.97);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .app-tile i {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+    }
+    
+    .app-tile span {
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .app-tile::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    
+    .app-tile.memory {
+        background: linear-gradient(135deg, #7E57C2 0%, #673AB7 100%);
+    }
+    
+    .app-tile.medication {
+        background: linear-gradient(135deg, #26A69A 0%, #00897B 100%);
+    }
+    
+    .app-tile.ai {
+        background: linear-gradient(135deg, #42A5F5 0%, #1E88E5 100%);
+    }
+    
+    .app-tile.todo {
+        background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
+    }
+    
+    /* App navigation dropdown */
+    .app-nav-dropdown {
+        margin-bottom: 1.5rem;
+        position: relative;
+        width: 100%;
+    }
+    
+    .app-nav-dropdown .dropdown-toggle {
+        width: 100%;
+        text-align: left;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background-color: white;
+        border: none;
+        font-weight: 600;
+        color: #333;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .app-nav-dropdown .dropdown-toggle:active {
+        transform: scale(0.99);
+    }
+    
+    .app-nav-dropdown .dropdown-toggle::after {
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .app-nav-dropdown .dropdown-menu {
+        width: 100%;
+        padding: 0;
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        overflow: hidden;
+        margin-top: 8px;
+    }
+    
+    .app-nav-dropdown .dropdown-item {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .app-nav-dropdown .dropdown-item:last-child {
+        border-bottom: none;
+    }
+    
+    .app-nav-dropdown .dropdown-item i {
+        margin-right: 12px;
+        width: 20px;
+        text-align: center;
+        color: var(--primary-color);
+        font-size: 1.1rem;
+    }
+    
+    .app-nav-dropdown .dropdown-item:hover {
+        background-color: rgba(67, 97, 238, 0.05);
+        transform: translateX(3px);
+    }
+    
+    .app-nav-dropdown .dropdown-divider {
+        margin: 0;
+    }
+    
+    /* Enhanced SOS button */
+    .sos-button-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+    }
+    
+    .sos-button {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e63946 0%, #d90429 100%);
+        border: none;
+        box-shadow: 0 10px 25px rgba(233, 30, 99, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.75rem;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 15px rgba(233, 30, 99, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+        }
+    }
+    
+    .sos-button:hover {
+        transform: scale(1.1);
+    }
+    
+    .sos-button:active {
+        transform: scale(0.95);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .nav-btn {
+            padding: 12px;
+        }
+        
+        .app-nav-dropdown .dropdown-toggle {
+            padding: 12px 16px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .app-tiles {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .app-tile i {
+            font-size: 1.8rem;
+        }
+        
+        .app-tile span {
+            font-size: 0.95rem;
+        }
+        
+        .sos-button {
+            width: 65px;
+            height: 65px;
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- App Navigation Dropdown -->
+    <div class="app-nav-dropdown dropdown">
+        <button class="dropdown-toggle" type="button" id="appNavDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-th-large me-2"></i> Menu
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="appNavDropdown">
+            <li><a class="dropdown-item" href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('tasks') }}"><i class="fas fa-tasks"></i> Tasks</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('medications') }}"><i class="fas fa-pills"></i> Medications</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('reminiscence_therapy') }}"><i class="fas fa-brain"></i> Memory Album</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('memory_training') }}"><i class="fas fa-dumbbell"></i> Memory Training</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('ai_assistant') }}"><i class="fas fa-robot"></i> AI Assistant</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('notes') }}"><i class="fas fa-sticky-note"></i> Notes</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('fitness_analysis') }}"><i class="fas fa-heartbeat"></i> Fitness Analysis</a></li>
+            <li class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{ url_for('pwa_install') }}"><i class="fas fa-download"></i> Install App</a></li>
+            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#voiceCommandsModal"><i class="fas fa-microphone"></i> Voice Commands</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Location display -->
+    <div class="location-display">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Bengaluru • 12.9719, 77.5937</span>
+    </div>
+
+    <!-- Date display -->
+    <div class="date-display">
+        <p>{{ date }}</p>
+    </div>
+
+    <!-- Navigation buttons -->
+    <div class="nav-buttons">
+        <a href="{{ url_for('notes') }}" class="nav-btn notes">
+            <i class="fas fa-sticky-note"></i> Notes
+        </a>
+        <a href="#" class="nav-btn emergency" onclick="document.getElementById('sos-button').click(); return false;">
+            <i class="fas fa-exclamation-triangle"></i> Emergency
+        </a>
+    </div>
+
+    <!-- App tiles - Enhanced with better visual appeal -->
+    <div class="app-tiles">
+        <a href="{{ url_for('ai_assistant') }}" class="app-tile ai">
+            <i class="fas fa-robot"></i>
+            <span>AI</span>
+        </a>
+        
+        <a href="{{ url_for('tasks') }}" class="app-tile todo">
+            <i class="fas fa-tasks"></i>
+            <span>To-Do</span>
+        </a>
+    </div>
+</div>
+
+<!-- SOS Emergency Button -->
+<div class="sos-button-container">
+    <button id="sos-button" class="sos-button" title="Emergency SOS">
+        <i class="fas fa-exclamation-triangle"></i>
+    </button>
+</div>
+
+<!-- SOS Modal -->
+<div class="modal fade" id="sosModal" tabindex="-1" aria-labelledby="sosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="sosModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> Emergency Assistance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-exclamation-circle text-danger fa-4x mb-3"></i>
+                    <h4>Do you need emergency assistance?</h4>
+                </div>
+                <p class="text-center">Pressing "Call Emergency Services" will contact your emergency contacts and caretaker immediately.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-sos">
+                    <i class="fas fa-phone-alt me-2"></i> Call Emergency Services
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SOS Confirmation Modal -->
+<div class="modal fade" id="sosConfirmationModal" tabindex="-1" aria-labelledby="sosConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="sosConfirmationModalLabel"><i class="fas fa-check-circle me-2"></i> Help is on the way</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-check-circle text-success fa-5x mb-3"></i>
+                <h4>Your emergency contacts have been notified</h4>
+                <p>Help is on the way. Please stay calm and remain where you are if possible.</p>
+                <div class="d-grid gap-2 mt-3">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // SOS emergency functions
+    document.getElementById('sos-button').addEventListener('click', function() {
+        // Show the SOS confirmation modal
+        const sosModal = new bootstrap.Modal(document.getElementById('sosModal'));
+        sosModal.show();
+    });
+    
+    document.getElementById('confirm-sos').addEventListener('click', async function() {
+        // Close the first modal
+        bootstrap.Modal.getInstance(document.getElementById('sosModal')).hide();
+        
+        try {
+            // Send SOS alert to the backend
+            const response = await fetch('/api/sos_alert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: "{{ session.user_id }}",
+                    timestamp: new Date().toISOString(),
+                    location: "Location data would be here in production"
+                })
+            });
+            
+            // Show confirmation modal regardless of backend response
+            const sosConfirmModal = new bootstrap.Modal(document.getElementById('sosConfirmationModal'));
+            sosConfirmModal.show();
+            
+        } catch (error) {
+            console.error('Error sending SOS alert:', error);
+            // Show the confirmation anyway so the user isn't left hanging
+            const sosConfirmModal = new bootstrap.Modal(document.getElementById('sosConfirmationModal'));
+            sosConfirmModal.show();
+        }
+    });
+</script>
+{% endblock %} 

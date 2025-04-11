@@ -1,0 +1,324 @@
+<!-- voice_navigation.html - Place this in your templates directory -->
+
+<!-- Voice feedback overlay -->
+<div id="voice-overlay" class="voice-overlay">
+    <div class="voice-feedback-container">
+        <div id="voiceStatus" class="voice-status">Tap the microphone button to start</div>
+        <div id="voiceFeedback" class="voice-feedback"></div>
+    </div>
+</div>
+
+<!-- Instructions modal -->
+<div class="modal fade" id="voiceCommandsModal" tabindex="-1" aria-labelledby="voiceCommandsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="voiceCommandsModalLabel">
+                    <i class="fas fa-microphone me-2"></i>Voice Commands
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="commands-heading mb-3">Available commands you can say:</h6>
+                <ul class="commands-list">
+                    <li class="command-item"><span class="command-keyword">"Home"</span> or <span class="command-keyword">"Dashboard"</span> - Go to the main dashboard</li>
+                    <li class="command-item"><span class="command-keyword">"Tasks"</span> or <span class="command-keyword">"To-Do"</span> - View your tasks</li>
+                    <li class="command-item"><span class="command-keyword">"Medications"</span> - View your medications</li>
+                    <li class="command-item"><span class="command-keyword">"Notes"</span> - Go to notes page</li>
+                    <li class="command-item"><span class="command-keyword">"Memory"</span> - Open memory album</li>
+                    <li class="command-item"><span class="command-keyword">"AI"</span> or <span class="command-keyword">"Assistant"</span> - Talk to the AI assistant</li>
+                    <li class="command-item"><span class="command-keyword">"Emergency"</span> - Send emergency alert</li>
+                    <li class="command-item"><span class="command-keyword">"Logout"</span> or <span class="command-keyword">"Sign Out"</span> - Log out of your account</li>
+                    <li class="command-item"><span class="command-keyword">"Help"</span> - Show this help screen</li>
+                    <li class="command-item"><span class="command-keyword">"Install"</span> - Install the app on your device</li>
+                    {% if session.get('user_type') == 'caretaker' %}
+                    <li class="command-item"><span class="command-keyword">"Manage [Patient Name]"</span> - Go to a specific patient's management page</li>
+                    {% endif %}
+                </ul>
+                <div class="voice-tips p-3 mt-3 rounded bg-light">
+                    <h6 class="tips-heading mb-2"><i class="fas fa-lightbulb text-warning me-2"></i>Tips for using voice commands:</h6>
+                    <ul class="tips-list mb-0">
+                        <li>Speak clearly and at a normal pace</li>
+                        <li>Try to minimize background noise</li>
+                        <li>Hold your device about 12 inches (30 cm) from your face</li>
+                        <li>Tap the floating mic button anytime to activate voice control</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Voice overlay styling */
+    .voice-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.7);
+        z-index: 1090;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    .voice-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .voice-feedback-container {
+        background-color: white;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 90%;
+        width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    
+    .voice-status {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #333;
+    }
+    
+    .voice-feedback {
+        font-size: 1.1rem;
+        color: #555;
+        min-height: 24px;
+    }
+    
+    /* Modal styling */
+    .commands-heading {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+    
+    .commands-list {
+        padding-left: 1.5rem;
+    }
+    
+    .command-item {
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+        line-height: 1.5;
+    }
+    
+    .command-keyword {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .voice-tips {
+        background-color: rgba(0,0,0,0.05);
+        border-radius: 8px;
+    }
+    
+    .tips-heading {
+        font-size: 1.15rem;
+        font-weight: 600;
+    }
+    
+    .tips-list {
+        padding-left: 1.75rem;
+    }
+    
+    .tips-list li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const voiceButton = document.getElementById('voice-nav-btn');
+        const voiceOverlay = document.getElementById('voice-overlay');
+        const voiceStatus = document.getElementById('voiceStatus');
+        const voiceFeedback = document.getElementById('voiceFeedback');
+        const installButton = document.getElementById('pwa-install-btn');
+        const voiceHelpButton = document.createElement('button');
+        
+        // Add help button for voice commands
+        voiceHelpButton.className = 'btn btn-sm btn-outline-secondary ms-2';
+        voiceHelpButton.innerHTML = '<i class="fas fa-question-circle"></i>';
+        voiceHelpButton.title = 'Voice command help';
+        voiceHelpButton.setAttribute('data-bs-toggle', 'modal');
+        voiceHelpButton.setAttribute('data-bs-target', '#voiceCommandsModal');
+        
+        // Add the help button next to the main voice button
+        voiceButton.parentNode.appendChild(voiceHelpButton);
+        
+        // Show voice help modal when clicking the help button
+        voiceButton.addEventListener('click', function() {
+            // Toggle voice overlay
+            voiceOverlay.classList.toggle('active');
+            
+            if (voiceOverlay.classList.contains('active')) {
+                voiceStatus.textContent = 'Listening...';
+                voiceButton.classList.add('listening');
+                
+                // Start voice recognition
+                startVoiceRecognition();
+            } else {
+                voiceStatus.textContent = 'Tap the microphone button to start';
+                voiceButton.classList.remove('listening');
+            }
+        });
+        
+        // Long press on mic button shows help modal
+        let pressTimer;
+        voiceButton.addEventListener('touchstart', function(e) {
+            pressTimer = setTimeout(function() {
+                const modal = new bootstrap.Modal(document.getElementById('voiceCommandsModal'));
+                modal.show();
+            }, 800);
+        });
+        
+        voiceButton.addEventListener('touchend', function() {
+            clearTimeout(pressTimer);
+        });
+        
+        // Click outside to close overlay
+        voiceOverlay.addEventListener('click', function(e) {
+            if (e.target === voiceOverlay) {
+                voiceOverlay.classList.remove('active');
+                voiceButton.classList.remove('listening');
+            }
+        });
+        
+        // Voice recognition logic
+        function startVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                voiceStatus.textContent = 'Speech recognition not supported in this browser';
+                setTimeout(() => {
+                    voiceOverlay.classList.remove('active');
+                }, 3000);
+                return;
+            }
+            
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onstart = function() {
+                voiceStatus.textContent = 'Listening...';
+                voiceButton.classList.add('listening');
+                
+                // Visual pulse effect on mic button during listening
+                voiceButton.style.animation = 'pulse 1.5s infinite';
+            };
+            
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript.toLowerCase();
+                voiceFeedback.textContent = `"${command}"`;
+                
+                // Process command through the server
+                processVoiceCommand(command);
+            };
+            
+            recognition.onerror = function(event) {
+                if (event.error === 'no-speech') {
+                    voiceStatus.textContent = 'No speech detected. Try again.';
+                } else {
+                    voiceStatus.textContent = `Error: ${event.error}`;
+                }
+                
+                setTimeout(() => {
+                    voiceOverlay.classList.remove('active');
+                    voiceButton.classList.remove('listening');
+                    voiceButton.style.animation = '';
+                }, 3000);
+            };
+            
+            recognition.onend = function() {
+                voiceButton.classList.remove('listening');
+                voiceButton.style.animation = '';
+            };
+            
+            recognition.start();
+        }
+        
+        function processVoiceCommand(command) {
+            // Handle special cases directly in the browser
+            if (command.includes('help') || command.includes('command')) {
+                const modal = new bootstrap.Modal(document.getElementById('voiceCommandsModal'));
+                modal.show();
+                voiceOverlay.classList.remove('active');
+                voiceButton.classList.remove('listening');
+                return;
+            }
+            
+            // Check for install command
+            if (command.includes('install') || command.includes('download app')) {
+                if (installButton && getComputedStyle(installButton).display !== 'none') {
+                    installButton.click();
+                    voiceStatus.textContent = 'Opening app installation...';
+                    setTimeout(() => {
+                        voiceOverlay.classList.remove('active');
+                    }, 2000);
+                    return;
+                }
+            }
+            
+            // Send to server for processing other commands
+            fetch('/api/process_voice_command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success' && data.redirect) {
+                    voiceStatus.textContent = data.message || 'Navigating...';
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1000);
+                } else {
+                    voiceStatus.textContent = data.message || 'Command not recognized';
+                    setTimeout(() => {
+                        voiceOverlay.classList.remove('active');
+                        voiceButton.classList.remove('listening');
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.error('Error processing voice command:', error);
+                voiceStatus.textContent = 'Error processing command';
+                setTimeout(() => {
+                    voiceOverlay.classList.remove('active');
+                    voiceButton.classList.remove('listening');
+                }, 3000);
+            });
+        }
+        
+        // Easter egg: If someone says "what can I say" or "how to use voice", show help
+        document.addEventListener('keydown', function(e) {
+            // Alt+M shortcut to activate voice
+            if (e.altKey && e.key === 'm') {
+                voiceButton.click();
+            }
+            
+            // Alt+H to show help
+            if (e.altKey && e.key === 'h') {
+                const modal = new bootstrap.Modal(document.getElementById('voiceCommandsModal'));
+                modal.show();
+            }
+        });
+    });
+</script>

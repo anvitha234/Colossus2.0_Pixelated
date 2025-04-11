@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" class="{% if g.standalone or session.standalone or request.args.get('standalone') == 'true' %}pwa-standalone{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Memory care application for patients and caretakers">
+    <meta name="theme-color" content="#4E7ADC">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MemoryBox">
+    <meta name="application-name" content="MemoryBox">
+    <meta name="msapplication-TileColor" content="#4E7ADC">
+    <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
+    
+    <title>MemoryBox - {% block title %}Home{% endblock %}</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/voice-navigation.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/icons/icon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/icons/icon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/icons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" crossorigin="use-credentials">
+
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        :root {
+            /* Mobile-app optimized color palette */
+            --primary-color: #4E7ADC;
+            --secondary-color: #7749F8;
+            --accent-color: #673AB7;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            
+            /* Memory Box specific colors */
+            --memory-purple: #673AB7;
+            --medication-teal: #00796B;
+            --ai-blue: #1976D2;
+            --todo-green: #2E7D32;
+            
+            /* App UI Variables */
+            --header-height: 60px;
+            --app-padding: 16px;
+            --card-border-radius: 12px;
+            --button-border-radius: 8px;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.5;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* App header styling */
+        .app-header {
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 var(--app-padding);
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .app-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: #333;
+            flex: 1;
+            margin: 0;
+        }
+        
+        .app-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* App content area */
+        .app-content {
+            padding: var(--app-padding);
+            max-width: 100%;
+            margin: 0 auto;
+            padding-bottom: calc(var(--app-padding) + env(safe-area-inset-bottom, 0));
+        }
+        
+        /* Location display */
+        .location-display {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        
+        .location-display i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        /* Date display */
+        .date-display {
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #555;
+            font-size: 1rem;
+        }
+        
+        /* App navigation buttons */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: var(--button-border-radius);
+            border: none;
+            font-weight: 500;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+        }
+        
+        .nav-btn.notes {
+            background-color: #5D4037;
+        }
+        
+        .nav-btn.emergency {
+            background-color: #C62828;
+        }
+        
+        /* App tiles grid */
+        .app-tiles {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .app-tile {
+            aspect-ratio: 1 / 1;
+            border-radius: var(--card-border-radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .app-tile:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        
+        .app-tile i {
+            font-size: 1.75rem;
+            margin-bottom: 12px;
+        }
+        
+        .app-tile.memory {
+            background-color: var(--memory-purple);
+        }
+        
+        .app-tile.medication {
+            background-color: var(--medication-teal);
+        }
+        
+        .app-tile.ai {
+            background-color: var(--ai-blue);
+        }
+        
+        .app-tile.todo {
+            background-color: var(--todo-green);
+        }
+        
+        /* Voice navigation button */
+        .voice-nav-container {
+            position: fixed;
+            bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
+            right: 1.5rem;
+            z-index: 900;
+        }
+        
+        /* Enhanced voice button */
+        #voice-nav-btn {
+            width: 60px !important;
+            height: 60px !important;
+            font-size: 1.25rem;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            border: none;
+            background-color: var(--primary-color);
+            animation: gentle-bounce 2s infinite;
+        }
+        
+        #voice-nav-btn:hover, #voice-nav-btn:focus {
+            transform: scale(1.05);
+            background-color: var(--accent-color);
+        }
+        
+        #voice-nav-btn.listening {
+            background-color: var(--danger-color);
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* PWA install button */
+        .install-btn {
+            display: flex;
+            align-items: center;
+            padding: 0.3rem 0.75rem;
+            border-radius: 50px;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            margin-right: 5px;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .install-btn i {
+            margin-right: 5px;
+        }
+        
+        .install-btn:hover, .install-btn:focus {
+            background-color: var(--secondary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Bounce animation for voice button */
+        @keyframes gentle-bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-3px);
+            }
+        }
+        
+        /* Pulse animation for listening state */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .app-content {
+                max-width: 700px;
+            }
+        }
+    </style>
+</head>
+<body class="{% if g.standalone or session.standalone or request.args.get('standalone') == 'true' %}pwa-standalone{% endif %}">
+    
+    <!-- Top app bar -->
+    <header class="app-header">
+        <h1 class="app-title">MemoryBox</h1>
+        <div class="app-actions">
+            <!-- PWA Install Button - Hidden by default, shown via JavaScript if installable -->
+            <button id="pwa-install-btn" class="install-btn" style="display: none;">
+                <i class="fas fa-download"></i> Install
+            </button>
+            
+            {% if session.user_id %}
+                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main content -->
+    <main class="app-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Voice navigation button - Enhanced visibility -->
+    <div class="voice-nav-container">
+        <button id="voice-nav-btn" class="btn btn-primary rounded-circle shadow" title="Voice control - tap to speak">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </div>
+
+    <!-- Include voice navigation overlay -->
+    {% include 'voice_navigation.html' %}
+
+    <!-- JavaScript dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- PWA registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+        
+        // Check if running as installed PWA
+        function isRunningAsPWA() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone || 
+                   document.referrer.includes('android-app://');
+        }
+        
+        if (isRunningAsPWA()) {
+            document.documentElement.classList.add('pwa-standalone');
+            document.body.classList.add('pwa-standalone');
+        }
+        
+        // PWA install button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const installButton = document.getElementById('pwa-install-btn');
+            let deferredPrompt;
+            
+            // If already in standalone mode, hide the install button
+            if (isRunningAsPWA()) {
+                installButton.style.display = 'none';
+                return;
+            }
+            
+            // Listen for beforeinstallprompt event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent Chrome 67+ from automatically showing the prompt
+                e.preventDefault();
+                // Stash the event so it can be triggered later
+                deferredPrompt = e;
+                // Show the install button
+                installButton.style.display = 'flex';
+            });
+            
+            // Install button click handler - either show native prompt or redirect to install page
+            installButton.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    // Show native install prompt if available
+                    deferredPrompt.prompt();
+                    // Wait for the user to respond to the prompt
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    // Clear the deferredPrompt variable
+                    deferredPrompt = null;
+                    // Hide the button regardless of outcome
+                    installButton.style.display = 'none';
+                } else {
+                    // If no native prompt is available, redirect to the install page
+                    window.location.href = "{{ url_for('pwa_install') }}";
+                }
+            });
+            
+            // Another check: show install button if device can install but hasn't yet
+            if (!isRunningAsPWA() && 
+                (navigator.userAgent.match(/Android/i) || 
+                 navigator.userAgent.match(/iPhone|iPad|iPod/i) ||
+                 navigator.userAgent.match(/Chrome/i))) {
+                installButton.style.display = 'flex';
+            }
+        });
+    </script>
+    
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
