@@ -163,26 +163,7 @@
             </div>
             {% endif %}
             
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Memory Prompts</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-4">These prompts can help stimulate memories and conversations about the past:</p>
-                    
-                    {% for prompt in memory_prompts %}
-                    <div class="memory-prompt">
-                        <i class="fas fa-quote-left text-primary me-2"></i>
-                        {{ prompt }}
-                    </div>
-                    {% endfor %}
-                    
-                    <button id="refresh-prompts" class="btn btn-outline-primary">
-                        <i class="fas fa-sync-alt me-2"></i>
-                        Get New Prompts
-                    </button>
-                </div>
-            </div>
+            
         </div>
         
         <div class="col-md-4">

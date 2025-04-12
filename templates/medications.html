@@ -15,44 +15,6 @@
         <p class="text-muted">Keep track of your daily medications</p>
     </div>
 </div>
-
-<!-- Add Medication Card -->
-<div class="card shadow-sm mb-4 med-card">
-    <div class="card-header">
-        <h5 class="mb-0 fw-bold">Add New Medication</h5>
-    </div>
-    <div class="card-body">
-        <!-- Add Medication Form -->
-        <form method="POST" action="{{ url_for('medications') }}">
-            <input type="hidden" name="action" value="add">
-            <div class="row g-3">
-                <div class="col-md-6 col-12 mb-3">
-                    <label for="med_name" class="form-label">Medication Name</label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text"><i class="fas fa-pills"></i></span>
-                        <input type="text" class="form-control form-control-lg" id="med_name" name="med_name" placeholder="Enter medication name" required>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12 mb-3">
-                    <label for="med_time" class="form-label">Time to Take</label>
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
-                        <input type="text" class="form-control form-control-lg" id="med_time" name="med_time" placeholder="For example: 08:00 AM" required>
-                    </div>
-                    <div class="form-text mt-2">
-                        Please use 12-hour format like 08:00 AM or 03:30 PM
-                    </div>
-                </div>
-            </div>
-            <div class="mt-3">
-                <button class="btn btn-primary btn-lg w-100" type="submit">
-                    <i class="fas fa-plus me-2"></i> Add Medication
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 <!-- Medication List Card -->
 <div class="card shadow-sm med-list-card">
     <div class="card-header">
@@ -93,50 +55,46 @@
         {% endif %}
     </div>
 </div>
-
-<!-- Tips Section -->
-<div class="card mt-4 tips-card">
+<!-- Add Medication Card -->
+<div class="card shadow-sm mb-4 med-card">
     <div class="card-header">
-        <h5 class="mb-0 fw-bold">Medication Tips</h5>
+        <h5 class="mb-0 fw-bold">Add New Medication</h5>
     </div>
     <div class="card-body">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="d-flex tip-item">
-                    <div class="me-3 text-primary tip-icon">
-                        <i class="fas fa-bell fa-2x"></i>
+        <!-- Add Medication Form -->
+        <form method="POST" action="{{ url_for('medications') }}">
+            <input type="hidden" name="action" value="add">
+            <div class="row g-3">
+                <div class="col-md-6 col-12 mb-3">
+                    <label for="med_name" class="form-label">Medication Name</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-pills"></i></span>
+                        <input type="text" class="form-control form-control-lg" id="med_name" name="med_name" placeholder="Enter medication name" required>
                     </div>
-                    <div>
-                        <h5 class="tip-title">Set Reminders</h5>
-                        <p>The app will remind you when it's time to take your medication.</p>
+                </div>
+                <div class="col-md-6 col-12 mb-3">
+                    <label for="med_time" class="form-label">Time to Take</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                        <input type="text" class="form-control form-control-lg" id="med_time" name="med_time" placeholder="For example: 08:00 AM" required>
+                    </div>
+                    <div class="form-text mt-2">
+                        Please use 12-hour format like 08:00 AM or 03:30 PM
                     </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="d-flex tip-item">
-                    <div class="me-3 text-primary tip-icon">
-                        <i class="fas fa-utensils fa-2x"></i>
-                    </div>
-                    <div>
-                        <h5 class="tip-title">With or Without Food</h5>
-                        <p>Some medications should be taken with food, others on an empty stomach.</p>
-                    </div>
-                </div>
+            <div class="mt-3">
+                <button class="btn btn-primary btn-lg w-100" type="submit">
+                    <i class="fas fa-plus me-2"></i> Add Medication
+                </button>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="d-flex tip-item">
-                    <div class="me-3 text-primary tip-icon">
-                        <i class="fas fa-water fa-2x"></i>
-                    </div>
-                    <div>
-                        <h5 class="tip-title">Stay Hydrated</h5>
-                        <p>Always take medications with a full glass of water unless instructed otherwise.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
+
+
+
+
 {% endblock %}
 
 {% block scripts %}

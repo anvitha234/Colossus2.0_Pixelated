@@ -3,13 +3,19 @@
 {% block title %}Patient Location{% endblock %}
 
 {% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+      crossorigin=""/>
+
 <style>
     #map {
-        height: 500px;
+        height: 400px;
         width: 100%;
         border-radius: 8px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1;
     }
     
     .location-info {
@@ -59,12 +65,23 @@
         font-size: 1.1em;
         font-weight: 500;
     }
+    
+    .custom-marker {
+        color: #E53935;
+        font-size: 2rem;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2 class="mb-4">Patient Location</h2>
+    <h2 class="mb-4">
+        <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+            <i class="fas fa-arrow-left me-2"></i>
+        </a>
+        Patient Location
+    </h2>
     
     <div class="location-info">
         <div class="location-status">
@@ -78,7 +95,7 @@
             </div>
             <div class="detail-item">
                 <label>Coordinates</label>
-                <span>12.8699° N, 80.2184° E</span>
+                <span>12.9637° N, 77.5060° E</span>
             </div>
             <div class="detail-item">
                 <label>Last Updated</label>
@@ -88,45 +105,120 @@
     </div>
     
     <div id="map"></div>
+    
+    <div class="mt-3 d-grid">
+        <button class="btn btn-primary" id="refresh-location">
+            <i class="fas fa-sync-alt me-2"></i> Refresh Location
+        </button>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+        crossorigin=""></script>
+
 <script>
     let map;
     let marker;
     
     function initMap() {
-        // Initialize map centered on 
+        // Check if map container exists
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer) return;
+        
+        // Initialize map centered on the college
         const collegeLocation = [12.9637, 77.5060];
-        map = L.map('map').setView(collegeLocation, 15);
         
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
+        // Create map instance if it doesn't exist
+        if (!map) {
+            map = L.map('map').setView(collegeLocation, 15);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+        } else {
+            // Just reset the view if map already exists
+            map.setView(collegeLocation, 15);
+        }
         
-        // Add marker for the college
+        // Create custom marker icon
         const customIcon = L.divIcon({
             className: 'custom-marker',
             html: '<i class="fas fa-map-marker-alt"></i>',
-            iconSize: [30, 30],
-            iconAnchor: [15, 30]
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
         });
         
-        marker = L.marker(collegeLocation, { icon: customIcon }).addTo(map);
+        // Add/update marker
+        if (marker) {
+            marker.setLatLng(collegeLocation);
+        } else {
+            marker = L.marker(collegeLocation, { icon: customIcon }).addTo(map);
+            marker.bindPopup("Patient is here").openPopup();
+        }
         
-        // Add a circle to show the campus area
+        // Add a circle to show the approximate area
         L.circle(collegeLocation, {
             color: '#4E7ADC',
             fillColor: '#4E7ADC',
             fillOpacity: 0.15,
             radius: 200 // 200 meters radius
         }).addTo(map);
+        
+        // Force a map redraw after a short delay
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    }
+    
+    // Update timestamp function
+    function updateTimestamp() {
+        const lastUpdate = document.getElementById('last-update');
+        const now = new Date();
+        lastUpdate.textContent = now.toLocaleTimeString();
     }
     
     // Initialize map when the page loads
-    document.addEventListener('DOMContentLoaded', initMap);
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        updateTimestamp();
+        
+        // Set up refresh button
+        const refreshButton = document.getElementById('refresh-location');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', function() {
+                initMap();
+                updateTimestamp();
+                
+                // Visual feedback
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+                
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-sync-alt me-2"></i> Refresh Location';
+                }, 1500);
+            });
+        }
+    });
+    
+    // Re-render map when tab becomes visible
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            setTimeout(initMap, 300);
+        }
+    });
+    
+    // Also handle resize events
+    window.addEventListener('resize', function() {
+        if (map) {
+            map.invalidateSize();
+        }
+    });
 </script>
 {% endblock %}

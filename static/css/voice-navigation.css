@@ -86,3 +86,388 @@
         font-size: 12px;
     }
 }
+
+/* Voice Navigation Styling */
+
+/* Floating microphone button */
+.voice-nav-floating {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.voice-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary-color, #3050e0);
+  color: white;
+  font-size: 1.5rem;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(48, 80, 224, 0.4);
+  transition: all 0.2s ease;
+  /* Enhanced touch area for mobile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.voice-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(48, 80, 224, 0.5);
+}
+
+.voice-button.active {
+  transform: scale(0.95);
+  background-color: #2545c2;
+}
+
+.voice-button.listening {
+  background-color: #dc3545;
+  animation: pulse 1.5s infinite;
+}
+
+.voice-button.disabled {
+  background-color: #b5b5b5;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* Voice status indicator */
+.voice-status-indicator {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 1rem;
+  color: #495057;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
+  transition: opacity 0.3s, transform 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  max-width: 90%;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-status-indicator.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.voice-status-indicator.listening {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.voice-status-indicator.listening::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #dc3545;
+  margin-right: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+/* Mobile-specific enhancements */
+@media (max-width: 768px) {
+  .voice-button {
+    /* Larger touch target for mobile */
+    width: 70px;
+    height: 70px;
+    font-size: 1.8rem;
+    bottom: 25px;
+    right: 25px;
+  }
+  
+  .voice-status-indicator {
+    /* More visible status on mobile */
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    top: 60px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .voice-status-indicator.visible {
+    opacity: 0.95;
+  }
+  
+  /* Ensure the status is visible even when keyboard is shown */
+  .keyboard-open .voice-status-indicator {
+    top: 10px;
+  }
+  
+  /* Better touch feedback */
+  .voice-button:active {
+    transform: scale(0.92);
+  }
+}
+
+/* Animation for the listening button */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Voice navigation repair button */
+.voice-nav-repair {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  z-index: 1000;
+  display: none; /* Hidden by default */
+}
+
+@media (max-width: 768px) {
+  .voice-nav-repair {
+    bottom: 110px;
+    right: 25px;
+  }
+  
+  .voice-nav-repair .btn {
+    /* Larger touch target */
+    padding: 10px 15px;
+    font-size: 0.95rem;
+  }
+}
+
+/* Permission status indicator */
+.permission-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  color: var(--gray-600, #6c757d);
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  background-color: var(--gray-100, #f8f9fa);
+  transition: all 0.3s ease;
+}
+
+.permission-status.granted {
+  background-color: rgba(25, 135, 84, 0.1);
+  color: #198754;
+}
+
+.permission-status.denied {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.permission-icon {
+  margin-right: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Special handling for iOS devices */
+@supports (-webkit-touch-callout: none) {
+  .voice-button {
+    /* iOS needs special handling for buttons */
+    -webkit-appearance: none;
+    padding: 0;
+  }
+  
+  .voice-status-indicator {
+    /* iOS safe area adjustment */
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+}
+
+/* Mobile optimization */
+@media (max-width: 767.98px) {
+  .voice-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .voice-help-btn {
+    width: 46px;
+    height: 46px;
+  }
+  
+  .voice-status-indicator {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+}
+
+/* Fix for Android touch handling */
+@media (hover: none) {
+  .voice-button:active,
+  .voice-help-btn:active {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+}
+
+/* Visual focus indication for accessibility */
+.voice-button:focus,
+.voice-help-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(48, 80, 224, 0.3);
+}
+
+/* Pingy-specific styles */
+.pingy-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pingy-alert {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 90%;
+  width: 350px;
+  text-align: center;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+}
+
+.pingy-alert h4 {
+  margin-top: 0;
+  color: var(--primary-color, #3050e0);
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.pingy-alert p {
+  margin-bottom: 15px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.pingy-alert .btn {
+  margin-top: 10px;
+  min-width: 100px;
+  min-height: 40px;
+  font-weight: 500;
+}
+
+/* Pingy-specific modifications for voice navigation */
+.pingy-connection .voice-button {
+  /* Make button more prominent on Pingy connections */
+  width: 75px;
+  height: 75px;
+  animation: attention-pulse 2s infinite;
+}
+
+.pingy-connection .voice-status-indicator.visible {
+  /* Make status more visible on Pingy */
+  opacity: 1;
+  font-weight: 500;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Animation to attract attention to the voice button */
+@keyframes attention-pulse {
+  0% { transform: scale(1); box-shadow: 0 4px 15px rgba(48, 80, 224, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 4px 20px rgba(48, 80, 224, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 4px 15px rgba(48, 80, 224, 0.4); }
+}
+
+/* Android-specific enhancements */
+.voice-android-fix {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  z-index: 1000;
+  background-color: #ffc107;
+  color: #212529;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-weight: 500;
+  animation: pulse 1.5s infinite;
+  transition: all 0.2s ease;
+}
+
+.voice-android-fix:hover, .voice-android-fix:active {
+  background-color: #e0a800;
+  transform: scale(0.95);
+}
+
+/* Android-specific mobile optimizations */
+@media (max-width: 768px) {
+  /* Android-specific styling */
+  .android-device .voice-button {
+    width: 80px; /* Larger for Android touch */
+    height: 80px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(48, 80, 224, 0.6);
+    margin-bottom: 16px;
+  }
+  
+  .android-device .voice-status-indicator {
+    padding: 12px 24px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .android-device .voice-android-fix {
+    bottom: 110px;
+    right: 20px;
+    padding: 12px 18px;
+    font-size: 1rem;
+  }
+  
+  /* Enhanced Android touch feedback */
+  .android-device .voice-button:active {
+    transform: scale(0.9);
+    background-color: #2545c2;
+  }
+}
+
+/* Specific Chrome/Android browser optimizations */
+@media (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+  .android-device .voice-button {
+    /* Even larger touch target for high density screens */
+    width: 85px;
+    height: 85px;
+    font-size: 2rem;
+  }
+  
+  .android-device .voice-status-indicator.visible {
+    /* Make sure it's really visible on high density screens */
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* Android button animation */
+@keyframes android-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); opacity: 0.9; }
+  100% { transform: scale(1); }
+}
+
+.android-device .voice-button.listening {
+  animation: android-pulse 1.2s infinite;
+}

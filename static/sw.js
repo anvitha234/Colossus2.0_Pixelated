@@ -1,4 +1,4 @@
-const CACHE_NAME = 'memorybox-v1';
+const CACHE_NAME = 'memorycare-v2';
 const urlsToCache = [
   '/',
   '/login',
@@ -6,16 +6,8 @@ const urlsToCache = [
   '/offline',
   '/splash',
   '/dashboard',
-  '/tasks',
-  '/medications',
-  '/notes',
-  '/reminiscence_therapy',
-  '/ai_assistant',
-  '/memory_training',
-  '/fitness_analysis',
   '/static/css/style.css',
-  '/static/css/voice-navigation.css',
-  '/static/js/voice-navigation.js',
+  '/static/js/pwa-install.js',
   '/static/manifest.json',
   '/static/images/icons/icon-16x16.png',
   '/static/images/icons/icon-32x32.png',

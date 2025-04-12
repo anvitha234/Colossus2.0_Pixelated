@@ -59,6 +59,10 @@
     #voice-feedback {
         height: 24px;
     }
+
+    .speech-controls {
+        margin-top: 1rem;
+    }
     
     @keyframes pulse {
         0% {
@@ -139,7 +143,23 @@
     </div>
 </div>
 
-
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">About Your AI Assistant</h5>
+    </div>
+    <div class="card-body">
+        <p>Your AI memory assistant is trained on personal information about you, helping to reinforce memories and provide helpful responses.</p>
+        <p>This assistant can answer questions about your:</p>
+        <ul>
+            <li>Personal information (name, age, etc.)</li>
+            <li>Background and history</li>
+            <li>Family and relationships</li>
+            <li>Interests and hobbies</li>
+            <li>Daily routines and preferences</li>
+        </ul>
+        <p><strong>Note:</strong> Your caretaker can update this information for more personalized responses.</p>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -157,7 +177,7 @@
         const synth = window.speechSynthesis;
         let currentUtterance = null;
         
-        // Stop any ongoing speech when user starts talking
+        // Stop any ongoing speech
         function stopSpeaking() {
             if (synth.speaking) {
                 synth.cancel();
@@ -210,6 +230,9 @@
                 voiceFeedback.textContent = "Listening...";
                 voiceFeedback.classList.remove('d-none');
                 voiceButton.classList.add('listening');
+                
+                // Stop any ongoing speech when listening
+                stopSpeaking();
             };
             
             recognition.onresult = function(event) {
@@ -220,8 +243,6 @@
                 // Auto-send the voice input
                 setTimeout(() => {
                     sendMessage();
-                    voiceFeedback.classList.add('d-none');
-                    voiceButton.classList.remove('listening');
                 }, 500);
             };
             
@@ -235,22 +256,22 @@
                 
                 if (event.error === 'no-speech') {
                     addMessage('I didn\'t hear anything. Please try again.', 'assistant');
+                    speakText('I didn\'t hear anything. Please try again.');
                 } else {
                     addMessage('Sorry, I couldn\'t understand that. Please try again or type your question.', 'assistant');
+                    speakText('Sorry, I couldn\'t understand that. Please try again or type your question.');
                 }
             };
             
             recognition.onend = function() {
                 voiceButton.classList.remove('listening');
+                voiceFeedback.classList.add('d-none');
                 voiceButton.disabled = false;
             };
         }
         
         // Voice button click handler
         voiceButton.addEventListener('click', function() {
-            // Stop any ongoing speech when user starts talking
-            stopSpeaking();
-            
             if (SpeechRecognition) {
                 try {
                     voiceButton.disabled = true;
@@ -259,9 +280,11 @@
                     console.error('Speech recognition error on start:', err);
                     voiceButton.disabled = false;
                     addMessage('There was an error with the speech recognition. Please try again.', 'assistant');
+                    speakText('There was an error with the speech recognition. Please try again.');
                 }
             } else {
                 addMessage('Sorry, your browser doesn\'t support speech recognition. Try using Chrome, Edge, or Safari.', 'assistant');
+                speakText('Sorry, your browser doesn\'t support speech recognition. Try using Chrome, Edge, or Safari.');
             }
         });
         
@@ -281,6 +304,23 @@
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
+            }
+        });
+        
+        // Speech toggle handler
+        speechToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // If turning on, speak the last assistant message
+                const messages = document.querySelectorAll('.assistant-message');
+                if (messages.length > 0) {
+                    const lastMessage = messages[messages.length - 1];
+                    if (lastMessage && !lastMessage.classList.contains('typing-indicator')) {
+                        speakText(lastMessage.textContent);
+                    }
+                }
+            } else {
+                // If turning off, stop any ongoing speech
+                stopSpeaking();
             }
         });
         
@@ -357,6 +397,12 @@
                 // Voices are loaded, ready for use
             };
         }
+        
+        // Speak the initial greeting when page loads
+        setTimeout(() => {
+            const initialGreeting = document.querySelector('.chat-message.assistant-message').textContent;
+            speakText(initialGreeting);
+        }, 1000);
     });
 </script>
 {% endblock %} 

@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" class="{% if g.standalone or session.standalone or request.args.get('standalone') == 'true' %}pwa-standalone{% endif %}">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="description" content="Memory care application for patients and caretakers">
-    <meta name="theme-color" content="#4E7ADC">
+    <meta name="theme-color" content="#3050e0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="MemoryBox">
-    <meta name="application-name" content="MemoryBox">
-    <meta name="msapplication-TileColor" content="#4E7ADC">
+    <meta name="apple-mobile-web-app-title" content="ReMind">
+    <meta name="application-name" content="ReMind">
+    <meta name="msapplication-TileColor" content="#3050e0">
     <meta name="msapplication-config" content="{{ url_for('static', filename='browserconfig.xml') }}">
     
-    <title>MemoryBox - {% block title %}Home{% endblock %}</title>
+    <title>ReMind - {% block title %}Home{% endblock %}</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -27,397 +27,638 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/icons/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}" crossorigin="use-credentials">
 
+
     {% block extra_css %}{% endblock %}
 
     <style>
         :root {
-            /* Mobile-app optimized color palette */
-            --primary-color: #4E7ADC;
-            --secondary-color: #7749F8;
-            --accent-color: #673AB7;
-            --success-color: #28a745;
-            --info-color: #17a2b8;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
+            /* Color palette with better contrast for seniors */
+            --primary-color: #3050e0; /* Blue for better contrast */
+            --primary-light: #4895ef;
+            --primary-dark: #2a3eb1;
+            --secondary-color: #4cc9f0;
+            --secondary-dark: #4895ef;
+            --success-color: #0a9b88;
+            --success-dark: #00806f;
+            --info-color: #4895ef;
+            --warning-color: #f72585;
+            --danger-color: #e63946;
+            --light-color: #f8f9fc;
+            --dark-color: #2d2c44;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
             
-            /* Memory Box specific colors */
-            --memory-purple: #673AB7;
-            --medication-teal: #00796B;
-            --ai-blue: #1976D2;
-            --todo-green: #2E7D32;
+            /* UI variables with larger touch targets for seniors */
+            --card-border-radius: 16px;
+            --button-border-radius: 12px;
+            --input-border-radius: 12px;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            --transition-fast: all 0.2s ease;
+            --transition: all 0.3s ease;
             
-            /* App UI Variables */
-            --header-height: 60px;
-            --app-padding: 16px;
-            --card-border-radius: 12px;
-            --button-border-radius: 8px;
+            /* Layout variables */
+            --navbar-height: 60px;
+            --section-spacing: 1.5rem;
+            --card-spacing: 1.25rem;
+            
+            /* Font sizes optimized for mobile */
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --heading-1: 1.75rem;
+            --heading-2: 1.5rem;
+            --heading-3: 1.35rem;
+            --heading-4: 1.25rem;
+            --heading-5: 1.125rem;
+            --button-font-size: 1.125rem;
+        }
+        
+        /* PWA Specific Styles */
+        .pwa-standalone {
+            height: 100vh;
+            width: 100vw;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: none; /* Prevent pull-to-refresh */
+        }
+        
+        /* iOS safe area adjustments */
+        @supports (-webkit-overflow-scrolling: touch) {
+            .pwa-standalone {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+            
+            .pwa-standalone .navbar-fixed-top {
+                padding-top: env(safe-area-inset-top);
+            }
+            
+            .pwa-standalone .fixed-bottom {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+        
+        /* Better touch feedback */
+        @media (hover: none) {
+            a:active, button:active {
+                opacity: 0.7;
+                transform: scale(0.98);
+            }
+            
+            /* Larger touch targets */
+            .nav-link, .btn, button, .form-control, select, input[type="checkbox"], input[type="radio"] {
+                min-height: 48px;
+                min-width: 48px;
+            }
+            
+            /* Add spacing between touch elements */
+            .list-group-item, .card-body .row > div {
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-            color: #333;
-            line-height: 1.5;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            margin-top: var(--navbar-height);
+            color: var(--gray-800);
+            line-height: 1.6;
             overflow-x: hidden;
-            min-height: 100vh;
-            padding-bottom: env(safe-area-inset-bottom, 0);
-            -webkit-tap-highlight-color: transparent;
+            font-size: var(--font-size-lg);
         }
         
-        /* App header styling */
-        .app-header {
-            position: sticky;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: #fff;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            padding: 0 var(--app-padding);
-            z-index: 1000;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        /* Android-style blue navbar */
+        .navbar {
+            background-color: var(--primary-color);
+            height: var(--navbar-height);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
-        .app-title {
-            font-weight: 600;
-            font-size: 1.25rem;
-            color: #333;
-            flex: 1;
-            margin: 0;
+        .navbar-brand {
+            font-weight: 700;
+            color: white;
+            font-size: 1.5rem;
         }
         
-        .app-actions {
-            display: flex;
-            gap: 8px;
+        .navbar-toggler {
+            border: none;
+            color: white;
+            padding: 0.5rem;
         }
         
-        /* App content area */
-        .app-content {
-            padding: var(--app-padding);
-            max-width: 100%;
-            margin: 0 auto;
-            padding-bottom: calc(var(--app-padding) + env(safe-area-inset-bottom, 0));
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
         }
         
-        /* Location display */
-        .location-display {
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #555;
-            margin-bottom: 1rem;
+        .nav-link {
+            color: white !important;
+            font-weight: 500;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            transition: var(--transition);
         }
         
-        .location-display i {
-            margin-right: 8px;
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .dropdown-menu {
+            border: none;
+            border-radius: var(--card-border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            padding: 0.8rem 1.2rem;
+            font-size: var(--font-size-base);
+            border-radius: 8px;
+            transition: var(--transition-fast);
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(48, 80, 224, 0.1);
             color: var(--primary-color);
         }
         
-        /* Date display */
-        .date-display {
-            text-align: center;
-            margin: 1.5rem 0;
-            color: #555;
-            font-size: 1rem;
-        }
-        
-        /* App navigation buttons */
-        .nav-buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .nav-btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: var(--button-border-radius);
+        /* Card styling */
+        .card {
             border: none;
-            font-weight: 500;
-            color: white;
-            text-align: center;
-            text-decoration: none;
-        }
-        
-        .nav-btn.notes {
-            background-color: #5D4037;
-        }
-        
-        .nav-btn.emergency {
-            background-color: #C62828;
-        }
-        
-        /* App tiles grid */
-        .app-tiles {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-        
-        .app-tile {
-            aspect-ratio: 1 / 1;
             border-radius: var(--card-border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background-color: white;
+        }
+        
+        /* Feature cards for dashboard */
+        .feature-card {
+            background-color: white;
+            border-radius: var(--card-border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 140px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .app-tile:active {
-            transform: scale(0.98);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
         }
         
-        .app-tile i {
-            font-size: 1.75rem;
-            margin-bottom: 12px;
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: rgba(48, 80, 224, 0.1);
+            color: var(--primary-color);
         }
         
-        .app-tile.memory {
-            background-color: var(--memory-purple);
-        }
-        
-        .app-tile.medication {
-            background-color: var(--medication-teal);
-        }
-        
-        .app-tile.ai {
-            background-color: var(--ai-blue);
-        }
-        
-        .app-tile.todo {
-            background-color: var(--todo-green);
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark-color);
         }
         
         /* Voice navigation button */
-        .voice-nav-container {
+        .voice-nav-floating {
             position: fixed;
-            bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
-            right: 1.5rem;
-            z-index: 900;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
         }
         
-        /* Enhanced voice button */
-        #voice-nav-btn {
-            width: 60px !important;
-            height: 60px !important;
-            font-size: 1.25rem;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+        .voice-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.5rem;
             border: none;
-            background-color: var(--primary-color);
-            animation: gentle-bounce 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(48, 80, 224, 0.4);
+            transition: all 0.2s ease;
         }
         
-        #voice-nav-btn:hover, #voice-nav-btn:focus {
-            transform: scale(1.05);
-            background-color: var(--accent-color);
-        }
-        
-        #voice-nav-btn.listening {
-            background-color: var(--danger-color);
+        .voice-button.listening {
+            background-color: #dc3545;
             animation: pulse 1.5s infinite;
         }
         
-        /* PWA install button */
-        .install-btn {
+        /* Voice status indicator */
+        .voice-status-indicator {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            color: var(--gray-800);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+            transition: opacity 0.3s, transform 0.3s;
+            opacity: 0;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
             display: flex;
             align-items: center;
-            padding: 0.3rem 0.75rem;
-            border-radius: 50px;
-            background-color: var(--accent-color);
-            color: white;
-            font-weight: 500;
-            font-size: 0.9rem;
-            text-decoration: none;
-            margin-right: 5px;
-            transition: all 0.2s ease;
-            border: none;
+            justify-content: center;
         }
         
-        .install-btn i {
-            margin-right: 5px;
+        .voice-status-indicator.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
         
-        .install-btn:hover, .install-btn:focus {
-            background-color: var(--secondary-color);
-            color: white;
-            transform: translateY(-2px);
+        .voice-status-indicator.listening {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
         }
         
-        /* Bounce animation for voice button */
-        @keyframes gentle-bounce {
-            0%, 20%, 50%, 80%, 100% {
-                transform: translateY(0);
-            }
-            40% {
-                transform: translateY(-5px);
-            }
-            60% {
-                transform: translateY(-3px);
-            }
+        .voice-status-indicator.listening::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            margin-right: 8px;
+            animation: pulse 1.5s infinite;
         }
         
-        /* Pulse animation for listening state */
         @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
-            }
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
         }
         
-        /* Responsive adjustments */
-        @media (min-width: 768px) {
-            .app-content {
-                max-width: 700px;
+        /* Help button */
+        .voice-help-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: var(--primary-color);
+        }
+        
+        /* Button styling */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--button-border-radius);
+            font-weight: 500;
+            transition: var(--transition);
+            font-size: var(--button-font-size);
+            text-transform: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(48, 80, 224, 0.2);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(48, 80, 224, 0.25);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 767.98px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
             }
+            
+            body {
+                margin-top: 60px;
+            }
+            
+            .navbar {
+                height: 60px;
+            }
+        }
+
+        /* Voice nav repair button */
+        .voice-nav-repair {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            z-index: 1000;
+            display: none; /* Hidden by default */
         }
     </style>
 </head>
-<body class="{% if g.standalone or session.standalone or request.args.get('standalone') == 'true' %}pwa-standalone{% endif %}">
-    
-    <!-- Top app bar -->
-    <header class="app-header">
-        <h1 class="app-title">MemoryBox</h1>
-        <div class="app-actions">
-            <!-- PWA Install Button - Hidden by default, shown via JavaScript if installable -->
-            <button id="pwa-install-btn" class="install-btn" style="display: none;">
-                <i class="fas fa-download"></i> Install
-            </button>
-            
-            {% if session.user_id %}
-                <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-secondary">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
-            {% endif %}
+<body data-user-type="{{ session.get('user_type', '') }}">
+    {% if session.user_id %}
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('user_dashboard') }}">
+                ReMind
+            </a>
+            <a class="btn btn-outline-danger ms-auto" href="{{ url_for('logout') }}">
+                Logout
+            </a>
         </div>
-    </header>
+    </nav>
+    
+    {% endif %}
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-container">
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
-    <!-- Main content -->
-    <main class="app-content">
+            {% endif %}
+        {% endwith %}
+        
         {% block content %}{% endblock %}
-    </main>
+    </div>
 
-    <!-- Voice navigation button - Enhanced visibility -->
-    <div class="voice-nav-container">
-        <button id="voice-nav-btn" class="btn btn-primary rounded-circle shadow" title="Voice control - tap to speak">
+    <!-- Voice navigation floating button -->
+    {% if session.get('user_id') %}
+    <div class="voice-nav-floating">
+        <button id="voiceNavButton" class="voice-button" aria-label="Voice navigation" title="Click to activate voice commands">
             <i class="fas fa-microphone"></i>
         </button>
     </div>
+    
+    <!-- Voice status indicator - visible to users -->
+    <div id="voice-status-indicator" class="voice-status-indicator">
+        Ready to listen
+    </div>
 
-    <!-- Include voice navigation overlay -->
-    {% include 'voice_navigation.html' %}
+    <!-- Voice navigation troubleshooter - appears when there are issues -->
+    <div id="voice-nav-repair" class="voice-nav-repair">
+        <button class="btn btn-warning btn-sm" onclick="repairVoiceNavigation()">
+            <i class="fas fa-tools me-1"></i> Fix Voice Navigation
+        </button>
+    </div>
 
-    <!-- JavaScript dependencies -->
+    <!-- Hidden elements for screen readers -->
+    <div id="voiceStatus" class="visually-hidden"></div>
+    <div id="voiceFeedback" class="visually-hidden"></div>
+    
+    <!-- Help button (question mark) -->
+    <button class="voice-help-btn" data-bs-toggle="modal" data-bs-target="#voiceCommandsModal">
+        <i class="fas fa-question"></i>
+    </button>
+    
+    <!-- Voice commands modal -->
+    <div class="modal fade" id="voiceCommandsModal" tabindex="-1" aria-labelledby="voiceCommandsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="voiceCommandsModalLabel">
+                        <i class="fas fa-microphone me-2"></i>Voice Commands
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="mb-3 fw-bold">Available commands:</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">"Home" - Go to dashboard</li>
+                        <li class="list-group-item">"Tasks" - View your tasks</li>
+                        <li class="list-group-item">"Medications" - View medications</li>
+                        <li class="list-group-item">"Notes" - Go to notes</li>
+                        <li class="list-group-item">"Memory Training" - Open memory exercises</li>
+                        <li class="list-group-item">"Memory Album" - View photos</li>
+                        <li class="list-group-item">"Assistant" - Talk to AI assistant</li>
+                        <li class="list-group-item">"Logout" - Sign out</li>
+                    </ul>
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <h6 class="fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>Tips:</h6>
+                        <ul class="mb-0">
+                            <li>Speak clearly at a normal pace</li>
+                            <li>Minimize background noise</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-    <!-- PWA registration -->
+    <script src="{{ url_for('static', filename='js/pwa-install.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification_manager.js') }}"></script>
+
+    <!-- Initialize Service Worker -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('ServiceWorker registration failed: ', error);
-                    });
-            });
-        }
-        
-        // Check if running as installed PWA
-        function isRunningAsPWA() {
-            return window.matchMedia('(display-mode: standalone)').matches || 
-                   window.navigator.standalone || 
-                   document.referrer.includes('android-app://');
-        }
-        
-        if (isRunningAsPWA()) {
-            document.documentElement.classList.add('pwa-standalone');
-            document.body.classList.add('pwa-standalone');
-        }
-        
-        // PWA install button functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const installButton = document.getElementById('pwa-install-btn');
-            let deferredPrompt;
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Page transition effects
+            const content = document.querySelector('.container');
+            content.style.opacity = '0';
+            content.style.transform = 'translateY(20px)';
+            content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             
-            // If already in standalone mode, hide the install button
-            if (isRunningAsPWA()) {
-                installButton.style.display = 'none';
-                return;
+            setTimeout(() => {
+                content.style.opacity = '1';
+                content.style.transform = 'translateY(0)';
+            }, 100);
+            
+            // Register service worker for PWA functionality
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register("/sw.js", {
+                        scope: '/',
+                        updateViaCache: 'none'
+                    });
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                } catch (err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                }
             }
             
-            // Listen for beforeinstallprompt event
-            window.addEventListener('beforeinstallprompt', (e) => {
-                // Prevent Chrome 67+ from automatically showing the prompt
-                e.preventDefault();
-                // Stash the event so it can be triggered later
-                deferredPrompt = e;
-                // Show the install button
-                installButton.style.display = 'flex';
-            });
-            
-            // Install button click handler - either show native prompt or redirect to install page
-            installButton.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    // Show native install prompt if available
-                    deferredPrompt.prompt();
-                    // Wait for the user to respond to the prompt
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response to the install prompt: ${outcome}`);
-                    // Clear the deferredPrompt variable
-                    deferredPrompt = null;
-                    // Hide the button regardless of outcome
-                    installButton.style.display = 'none';
-                } else {
-                    // If no native prompt is available, redirect to the install page
-                    window.location.href = "{{ url_for('pwa_install') }}";
-                }
-            });
-            
-            // Another check: show install button if device can install but hasn't yet
-            if (!isRunningAsPWA() && 
-                (navigator.userAgent.match(/Android/i) || 
-                 navigator.userAgent.match(/iPhone|iPad|iPod/i) ||
-                 navigator.userAgent.match(/Chrome/i))) {
-                installButton.style.display = 'flex';
+            // Check if the app is in standalone mode (installed as PWA)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                              window.navigator.standalone || 
+                              document.referrer.includes('android-app://');
+                              
+            if (isStandalone) {
+                document.body.classList.add('pwa-standalone');
             }
         });
     </script>
-    
-    <!-- Page-specific scripts -->
+
     {% block scripts %}{% endblock %}
+
+    {% if session.get('user_id') %}
+        <script src="{{ url_for('static', filename='js/voice-navigation.js') }}"></script>
+    <script>
+            // Simplified voice navigation initialization using AI assistant approach
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('Monitoring voice navigation initialization');
+                const statusIndicator = document.getElementById('voice-status-indicator');
+                const voiceButton = document.getElementById('voiceNavButton');
+                const repairButton = document.getElementById('voice-nav-repair');
+                
+                // Add the self-repair function 
+                window.repairVoiceNavigation = function() {
+                    console.log('User initiated voice navigation repair');
+                    
+                    if (statusIndicator) {
+                        statusIndicator.textContent = 'Repairing voice navigation...';
+                        statusIndicator.classList.add('visible');
+                    }
+                    
+                    // Hide repair button during the process
+                    if (repairButton) {
+                        repairButton.style.display = 'none';
+                    }
+                    
+                    // Reload the script
+                    const oldScript = document.querySelector('script[src*="voice-navigation.js"]');
+                    if (oldScript) {
+                        oldScript.remove();
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = "{{ url_for('static', filename='js/voice-navigation.js') }}";
+                    script.onload = function() {
+                        console.log('Voice navigation script reloaded');
+                        
+                        // Wait a bit and then try to fix
+                        setTimeout(function() {
+                            if (window.fixVoiceNavigation) {
+                                const fixed = window.fixVoiceNavigation();
+                                if (fixed && statusIndicator) {
+                                    statusIndicator.textContent = 'Voice navigation repaired';
+                                    if (repairButton) {
+                                        repairButton.style.display = 'none';
+                                    }
+                                } else if (statusIndicator) {
+                                    statusIndicator.textContent = 'Could not repair voice navigation';
+                                    if (repairButton) {
+                                        repairButton.style.display = 'block';
+                                    }
+                                }
+                            } else {
+                                if (statusIndicator) {
+                                    statusIndicator.textContent = 'Repair function not available';
+                                    if (repairButton) {
+                                        repairButton.style.display = 'block';
+                                    }
+                                }
+                            }
+                        }, 500);
+                    };
+                    document.body.appendChild(script);
+                };
+                
+                // Check initialization after a delay - using observer pattern
+                setTimeout(() => {
+                    // Using Speech Recognition API similar to AI assistant approach
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    
+                    // Check if browser supports speech recognition
+                    if (!SpeechRecognition) {
+                        console.error('Speech Recognition API not supported in this browser');
+                        if (statusIndicator) {
+                            statusIndicator.textContent = 'Voice navigation not supported in this browser';
+                            statusIndicator.classList.add('visible');
+                        }
+                        if (voiceButton) {
+                            voiceButton.disabled = true;
+                            voiceButton.classList.add('disabled');
+                        }
+                        return;
+                    }
+                    
+                    // Check if voice navigation initialized successfully
+                    if (!window.voiceNav || !window.voiceNav.initialized) {
+                        console.error('Voice navigation failed to initialize');
+                        
+                        if (statusIndicator) {
+                            statusIndicator.textContent = 'Voice navigation unavailable';
+                            statusIndicator.classList.add('visible');
+                        }
+                        
+                        // Show repair button if initialization failed
+                        if (repairButton) {
+                            repairButton.style.display = 'block';
+                        }
+                        
+                        // Run compatibility check to debug
+                        if (window.checkVoiceNavCompatibility) {
+                            window.checkVoiceNavCompatibility();
+                        }
+                    } else {
+                        console.log('Voice navigation initialized successfully');
+                        
+                        // Hide repair button if everything is working
+                        if (repairButton) {
+                            repairButton.style.display = 'none';
+                        }
+                    }
+                }, 2000);  // Wait 2 seconds to check initialization status
+            });
+    </script>
+    
+    <style>
+    /* Voice nav repair button */
+    .voice-nav-repair {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        z-index: 1000;
+        display: none; /* Hidden by default */
+    }
+    </style>
+    {% endif %}
 </body>
 </html>

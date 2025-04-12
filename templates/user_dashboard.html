@@ -64,10 +64,11 @@
     
     .nav-btn {
         flex: 1;
-        padding: 14px;
+        padding: 10px 12px;
         border-radius: 12px;
         border: none;
         font-weight: 600;
+        font-size: 0.9rem;
         color: white;
         text-align: center;
         text-decoration: none;
@@ -76,10 +77,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        max-width: 48%;
     }
     
     .nav-btn i {
-        margin-right: 8px;
+        margin-right: 6px;
     }
     
     .nav-btn.notes {
@@ -336,17 +338,8 @@
     </div>
 
     <!-- Location display -->
-    <div class="location-display">
-        <i class="fas fa-map-marker-alt"></i>
-        <span>Bengaluru • 12.9719, 77.5937</span>
-    </div>
+    <img src="{{ url_for('static', filename='images/fam.jpg') }}" alt="Family Photo" class="img-fluid rounded mb-3" style="width: 100%; max-height: 300px; object-fit: cover;">
 
-    <!-- Date display -->
-    <div class="date-display">
-        <p>{{ date }}</p>
-    </div>
-
-    <!-- Navigation buttons -->
     <div class="nav-buttons">
         <a href="{{ url_for('notes') }}" class="nav-btn notes">
             <i class="fas fa-sticky-note"></i> Notes
@@ -355,12 +348,21 @@
             <i class="fas fa-exclamation-triangle"></i> Emergency
         </a>
     </div>
-
     <!-- App tiles - Enhanced with better visual appeal -->
     <div class="app-tiles">
+        <a href="{{ url_for('memory_training') }}" class="app-tile memory">
+            <i class="fas fa-brain"></i>
+            <span>Games</span>
+        </a>
+        
+        <a href="{{ url_for('medications') }}" class="app-tile medication">
+            <i class="fas fa-pills"></i>
+            <span>Medication</span>
+        </a>
+        
         <a href="{{ url_for('ai_assistant') }}" class="app-tile ai">
             <i class="fas fa-robot"></i>
-            <span>AI</span>
+            <span>Memory AI</span>
         </a>
         
         <a href="{{ url_for('tasks') }}" class="app-tile todo">
@@ -371,11 +373,7 @@
 </div>
 
 <!-- SOS Emergency Button -->
-<div class="sos-button-container">
-    <button id="sos-button" class="sos-button" title="Emergency SOS">
-        <i class="fas fa-exclamation-triangle"></i>
-    </button>
-</div>
+
 
 <!-- SOS Modal -->
 <div class="modal fade" id="sosModal" tabindex="-1" aria-labelledby="sosModalLabel" aria-hidden="true">

@@ -1,6 +1,6 @@
 {
-  "short_name": "MemoryBox",
-  "name": "MemoryBox - Memory Care App",
+  "short_name": "ReMind",
+  "name": "ReMind - Memory Care App",
   "icons": [
     {
       "src": "/static/images/icons/favicon.ico",
@@ -25,34 +25,22 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#4E7ADC",
-  "background_color": "#f8f9fa",
+  "theme_color": "#4361ee",
+  "background_color": "#f8faff",
   "description": "A memory care application for patients and caretakers",
   "categories": ["health", "medical", "productivity"],
   "shortcuts": [
     {
-      "name": "Memory",
-      "short_name": "Memory",
-      "description": "Access memory album",
-      "url": "/reminiscence_therapy"
+      "name": "Daily Tasks",
+      "short_name": "Tasks",
+      "description": "View your daily tasks",
+      "url": "/tasks"
     },
     {
-      "name": "Medication",
+      "name": "Medications",
       "short_name": "Meds",
       "description": "Manage your medications",
       "url": "/medications"
-    },
-    {
-      "name": "AI Assistant",
-      "short_name": "AI",
-      "description": "Talk to the AI assistant",
-      "url": "/ai_assistant"
-    },
-    {
-      "name": "To-Do",
-      "short_name": "To-Do",
-      "description": "View your tasks",
-      "url": "/tasks"
     }
   ]
 }
